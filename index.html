@@ -457,16 +457,17 @@
 
                         const tr = document.createElement('tr');
                         let rowHtml = `
-                            <td class="py-1"><input type="text" class="text-center font-medium" value="${index + 1}" readonly></td>
-                            <td class="text-left"><input type="text" value="${namaBarang}" class="w-full uppercase px-2 font-medium"></td>
-                            <td class="bg-slate-50"><input type="number" step="any" class="text-center w-full font-medium text-blue-900" value="${qty}" ${index === 0 ? 'oninput="hitungOtomatis(this)"' : ''}></td>
-                            <td><input type="text" class="text-center w-full font-medium" value="${uom}"></td>
-                            <td class="bg-slate-50"><input type="text" class="text-center w-full font-medium" value="${batch}"></td>
+                            <td class="py-1"><input type="text" class="text-center font-bold text-black" value="${index + 1}" readonly></td>
+                            <td class="text-left"><input type="text" value="${namaBarang}" class="w-full uppercase px-2 font-bold text-black" readonly></td>
+                            <td class="bg-slate-50"><input type="number" step="any" class="text-center w-full font-bold text-blue-900" value="${qty}" ${index === 0 ? 'oninput="hitungOtomatis(this)"' : 'readonly'}></td>
+                            <td><input type="text" class="text-center w-full font-bold text-black" value="${uom}" readonly></td>
+                            <td class="bg-slate-50"><input type="text" class="text-center w-full font-bold text-black" value="${batch}" readonly></td>
                         `;
 
+                        // Sekalian kita tebelin teks di kolom Alasan Dikembalikan (Textarea)
                         if(index === 0) {
                             rowHtml += `<td rowspan="${data.length}" class="bg-white border-l border-slate-800 p-2 align-top">
-                                <textarea class="w-full h-full min-h-[50px] text-center font-medium" placeholder="${placeholderTeks}"></textarea>
+                                <textarea class="w-full h-full min-h-[50px] text-center font-bold text-black" placeholder="${placeholderTeks}"></textarea>
                             </td>`;
                         }
 
