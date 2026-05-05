@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Surat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ========================================================= */
+        /* PENGATURAN DASAR & TIPOGRAFI                              */
+        /* ========================================================= */
+        body {
+            background-color: #f8fafc; 
+            font-family: 'Inter', sans-serif;
+            font-size: 14px; 
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .form-container {
+            width: 290mm;
+            min-height: 150mm;
+            background: white;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.03);
+            position: relative;
+        }
+
+        .outer-border { border: 2px solid #0f172a !important; }
+
+        .excel-table { width: 100%; border-collapse: collapse; }
+        .excel-table th, .excel-table td { border: 1px solid #1e293b; padding: 6px 8px; }
+        .excel-table th { background-color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; font-size: 12px; color: #0f172a;}
+        
+        .border-none { border: none !important; }
+        .border-b-only { border: none; border-bottom: 1px solid #1e293b !important; }
+
+        input, textarea {
+            width: 100%; background: transparent; border: 1px solid transparent; outline: none; padding: 4px; font-family: inherit; font-size: inherit; border-radius: 4px; transition: all 0.2s;
+        }
+        input:not([readonly]):hover, textarea:not([readonly]):hover { background-color: #f8fafc; }
+        input:not([readonly]):focus, textarea:not([readonly]):focus { background-color: #fff; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
+
+        .loading-overlay { display: none; position: absolute; inset: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px); z-index: 50; align-items: center; justify-content: center; flex-direction: column; border-radius: 8px; }
+
+        /* ========================================================= */
+        /* 🖨️ MODE CETAK (PRINT) - PRESISI & BERSIH                  */
+        /* ========================================================= */
+        @media print {
+            #landing_view, .no-print { display: none !important; }
+            #app_view { display: block !important; }
+            
+            @page { size: A4 portrait; margin: 0; }
+            body { background: none; margin: 0; padding: 0; position: relative; }
+            
+            .form-container {
+                box-shadow: none !important; border-radius: 0 !important; border: 6px solid black !important; 
+                width: 275mm; position: absolute; top: 5mm; left: 50%; transform: translateX(-50%) scale(0.68); transform-origin: top center;
+            }
+
+            input::placeholder, textarea::placeholder { color: transparent !important; opacity: 0 !important; }
+            input, textarea { border: none !important; background: none !important; box-shadow: none !important; }
+            .excel-table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+            .excel-table tbody td:nth-child(2),
+            .excel-table tbody td:nth-child(3),
+            .excel-table tbody td:nth-child(5),
+            .excel-table tbody td:nth-child(2) input,
+            .excel-table tbody td:nth-child(3) input,
+            .excel-table tbody td:nth-child(5) input {
+                font-weight: 700 !important;
+            }
+            .excel-table tbody td:nth-child(2),
+            .excel-table tbody td:nth-child(3),
+            .excel-table tbody td:nth-child(5) {
+                font-weight: bold;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <div id="landing_view" class="flex flex-col flex-1">
+        
+        <header class="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-10 shadow-sm">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                
+                <div class="flex items-center gap-4 md:gap-6">
+                    <img src="https://iili.io/BUy0yxI.png" alt="Propan Logo" class="h-10 md:h-14 w-auto flex-shrink-0 object-contain object-left">
+                    
+                    <div class="h-8 w-px bg-slate-300 hidden md:block"></div>
+                    
+                    <span class="text-lg md:text-xl font-bold text-slate-800 tracking-tight hidden md:block">Form Generator System</span>
+                </div>
+
+                <div class="hidden md:flex items-center gap-2 text-sm font-medium text-slate-500">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span> System Online
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-5xl mx-auto w-full px-6 py-10 md:py-16">
+            <div class="max-w-2xl mb-10">
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight mb-3">Portal Dokumen Pengemasan</h1>
+                <p class="text-slate-500 text-base leading-relaxed">Pilih modul dokumen yang ingin di proses. Sistem terintegrasi langsung dengan data Pengeluaran Gudang untuk mempercepat penyiapan form.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl">
+                <div onclick="bukaForm('retur')" class="group bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all duration-300 cursor-pointer flex flex-col relative overflow-hidden h-full">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
+                    
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    </div>
+                    
+                    <h2 class="text-lg font-bold text-slate-800 mb-2">Bukti Pengembalian Barang</h2>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6 flex-1">Proses dokumen retur barang yang dikembalikan. Tarik data otomatis menggunakan 7 digit terakhir nomor PO.</p>
+                    
+                    <div class="flex items-center text-blue-600 font-semibold text-sm group-hover:translate-x-1.5 transition-transform duration-300">
+                        Buka Modul <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+
+                <div onclick="bukaForm('penyiapan')" class="group bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-400 transition-all duration-300 cursor-pointer flex flex-col relative overflow-hidden h-full">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
+                    
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    </div>
+                    
+                    <h2 class="text-lg font-bold text-slate-800 mb-2">Permintaan Penyiapan Barang</h2>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6 flex-1">Buat instruksi penyiapan dan pengambilan barang di area gudang berdasarkan data order PO yang valid.</p>
+                    
+                    <div class="flex items-center text-emerald-600 font-semibold text-sm group-hover:translate-x-1.5 transition-transform duration-300">
+                        Buka Modul <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+            <div class="max-w-6xl mx-auto px-6 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+                <p>&copy; 2026 all rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+
+    <div id="app_view" class="hidden pb-24">
+        
+        <header class="bg-white border-b border-slate-200 px-6 py-3 sticky top-0 z-20 shadow-sm no-print mb-8">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <button onclick="kembaliKeMenu()" class="p-2 -ml-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors" title="Kembali ke Dashboard">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </button>
+                    <div class="h-6 w-px bg-slate-300"></div>
+                    <div>
+                        <h1 id="header_title" class="text-base font-bold text-slate-800">Sistem Form</h1>
+                        <p class="text-xs text-slate-500">Cari dengan <span class="text-blue-600 font-medium">7 digit PO</span> + Enter</p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button onclick="resetForm()" class="px-4 py-2 text-slate-600 font-medium bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-all text-sm shadow-sm">
+                        Reset Form
+                    </button>
+                    <button onclick="simpanData()" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-all shadow-sm text-sm" id="btnSimpan">
+                        Simpan Data
+                    </button>
+                    <button onclick="window.print()" class="px-4 py-2 bg-slate-900 text-white font-medium rounded-md hover:bg-slate-800 transition-all shadow-sm text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Cetak A4
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="form-container outer-border p-2 relative" id="printArea">
+            <div id="loading" class="loading-overlay">
+                <svg class="animate-spin h-8 w-8 text-blue-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="font-bold text-slate-700 text-sm tracking-wide">Mengambil data...</span>
+            </div>
+
+           <table class="w-full mb-2 mt-1 border-collapse text-sm">
+                <colgroup> <col style="width: 15%;"> <col style="width: 45%;"> <col style="width: 15%;"> <col style="width: 25%;"> </colgroup>
+                <tbody>
+                    <tr>
+                        <td colspan="2" class="pb-1 align-middle">
+                            <div class="flex items-center gap-2">
+                                <img src="https://iili.io/BUy0yxI.png" alt="Logo Propan" class="h-6 w-auto object-contain print:grayscale">
+                                <span class="font-bold text-base">PT. PROPAN RAYA ICC</span>
+                            </div>
+                        </td>
+                        <td class="text-right font-bold pr-2 pb-1 align-middle">No. :</td>
+                        <td class="border-b border-black pb-1 align-middle"><input type="text" value="-" class="text-center font-bold text-base w-full" readonly></td>
+                    </tr>
+                    <tr>
+                        <td class=""><span class="underline">Cabang</span> / <span class="underline">Lokasi</span></td>
+                        <td class="border-b border-black">: <input type="text" value="Cikupa" class="w-auto inline-block italic" id="input_cabang"></td>
+                        <td class="text-right underline pr-2">Tgl</td>
+                        <td class="border-b border-black text-center">: <input type="text" id="tgl_dokumen" class="w-auto inline-block italic text-center"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="text-center my-5">
+                <h2 id="doc_title" class="text-2xl font-extrabold uppercase tracking-widest border-b-2 border-black inline-block px-4 pb-1">
+                    BUKTI PENGEMBALIAN BARANG
+                </h2>
+            </div>
+
+            <table class="w-full mb-4 text-sm">
+                <colgroup> <col style="width: 15%;"> <col style="width: 40%;"> <col style="width: 10%;"> <col style="width: 25%;"> <col style="width: 10%;"> </colgroup>
+                <tbody>
+                    <tr>
+                        <td class="py-1 font-semibold align-middle"><span class="underline">Kode Material</span>:</td>
+                        <td class="py-1 align-middle">
+                            <input type="text" id="kd_material" class="font-bold text-lg text-black" autocomplete="off">
+                        </td>
+                        <td class="py-1 text-right font-bold align-middle text-base pr-2">PO :</td>
+                        <td class="py-1 bg-yellow-50 align-middle border-b border-gray-300">
+                            <input type="text" id="order_number" class="font-bold text-xl text-center text-black-900 py-1" autocomplete="off">
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 font-semibold align-middle"><span class="underline">Nama Produk</span>:</td>
+                        <td colspan="4" class="py-1 align-middle">
+                            <input type="text" id="nama_produk" class="font-bold text-lg text-black">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>  
+
+            <table class="excel-table text-center text-sm" id="itemsTable">
+                <colgroup> 
+                    <col style="width: 5%;"> 
+                    <col style="width: 40%;"> 
+                    <col style="width: 8%;"> 
+                    <col style="width: 7%;"> 
+                    <col style="width: 15%;"> 
+                    <col style="width: 25%;"> 
+                    <col class="no-print" style="width: 40px;"> 
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>No.</th><th>Nama Barang</th><th>Qty</th><th>UoM</th><th>Batch</th><th id="th_keterangan">Alasan dikembalikan</th>
+                        <th class="no-print border-none text-red-500 text-xs">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+
+            <div style="min-height: 40px;"></div>
+
+            <table class="w-full mt-auto mb-2 text-sm border-none">
+                <colgroup> <col style="width: 50%;"> <col style="width: 50%;"> </colgroup>
+                <tbody>
+                    <tr>
+                        <td class="text-center pb-2"><span class="underline" id="ttd_kiri">Diterima oleh,</span></td>
+                        <td class="text-center pb-2"><span class="underline" id="ttd_kanan">Diserahkan oleh,</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="flex items-center ml-16 mt-2"><span class="underline mr-2">Tgl :</span><input type="text" class="w-32 border-b border-black text-center text-sm"></div>
+                            <div class="h-16"></div>
+                        </td>
+                        <td>
+                            <div class="flex items-center ml-16 mt-2"><span class="underline mr-2">Tgl :</span><input type="text" id="tgl_serah" class="w-48 border-b border-black text-center text-sm"></div>
+                            <div class="h-16"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">
+                            ( <input type="text" class="w-64 text-center border-b border-black font-bold"> )<br>
+                            <span class="underline mt-1 inline-block" id="label_kiri">Penerima Barang</span>
+                        </td>
+                        <td class="text-center">
+                            ( <input type="text" class="w-64 text-center border-b border-black font-bold"> )<br>
+                            <span class="underline mt-1 inline-block" id="label_kanan">Pengirim Barang</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let kapasitasBox = 1;
+        let isiLakbanPerBox = 0;
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwW-LQfH8y8st5tUPUiOQBost2z9CO0EHRgL1D7Fa8o6QBr4yH4JeG9pYmvHz0puHin0A/exec";
+        let tipeDokumen = 'retur';
+        
+        let currentFormType = ''; 
+
+        function bukaForm(type) {
+            currentFormType = type;
+            document.getElementById('landing_view').classList.add('hidden');
+            document.getElementById('landing_view').classList.remove('flex'); 
+            document.getElementById('app_view').classList.remove('hidden');
+            window.scrollTo(0, 0);
+
+            if(type === 'retur') {
+                document.getElementById('doc_title').innerText = "BUKTI PENGEMBALIAN BARANG";
+                document.getElementById('header_title').innerText = "Form Pengembalian Barang";
+                document.getElementById('th_keterangan').innerText = "Alasan dikembalikan";
+                
+                document.getElementById('ttd_kiri').innerText = "Diterima oleh,";
+                document.getElementById('ttd_kanan').innerText = "Diserahkan oleh,";
+                document.getElementById('label_kiri').innerText = "Penerima Barang";
+                document.getElementById('label_kanan').innerText = "Pengirim Barang";
+
+            } else {
+                document.getElementById('doc_title').innerText = "PERMINTAAN PENYIAPAN BARANG";
+                document.getElementById('header_title').innerText = "Form Penyiapan Barang";
+                document.getElementById('th_keterangan').innerText = "Keterangan";
+                
+                document.getElementById('ttd_kiri').innerText = "Disetujui oleh,";
+                document.getElementById('ttd_kanan').innerText = "Dibuat oleh,";
+                document.getElementById('label_kiri').innerText = "Supervisor / Manager";
+                document.getElementById('label_kanan').innerText = "Admin Gudang";
+            }
+            resetForm();
+        }
+
+        function kembaliKeMenu() {
+            document.getElementById('app_view').classList.add('hidden');
+            document.getElementById('landing_view').classList.remove('hidden');
+            document.getElementById('landing_view').classList.add('flex');
+            window.scrollTo(0, 0);
+        }
+
+        function setupDates() {
+            const today = new Date();
+            const opt = { day: '2-digit', month: 'short', year: '2-digit' };
+            document.getElementById('tgl_dokumen').value = today.toLocaleDateString('id-ID', opt).replace('.', '');
+
+            const formatTime = (date) => {
+                let d = date.getDate().toString().padStart(2, '0'), m = (date.getMonth() + 1).toString().padStart(2, '0'), y = date.getFullYear().toString().slice(-2);
+                let hours = date.getHours(), ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12; hours = hours ? hours : 12; 
+                let mins = date.getMinutes().toString().padStart(2, '0');
+                return `${m}/${d}/${y} ${hours.toString().padStart(2, '0')}:${mins} ${ampm}`;
+            };
+            document.getElementById('tgl_serah').value = formatTime(today);
+        }
+
+        // --- FUNGSI BARU: HAPUS BARIS CERDAS ---
+        function hapusBaris(btn) {
+            const tr = btn.closest('tr');
+            const tbody = document.getElementById('tableBody');
+            
+            if (tbody.children.length <= 1) {
+                alert("⚠️ Baris terakhir tidak bisa dihapus!");
+                return;
+            }
+
+            // Cek apakah baris ini memiliki kotak textarea Keterangan (rowspan)
+            let rowspanCell = tr.querySelector('td[rowspan]');
+            
+            if (rowspanCell) {
+                // Jika Baris 1 dihapus, pindahkan kotak Keterangan ke Baris 2
+                const nextRow = tr.nextElementSibling;
+                if (nextRow) {
+                    rowspanCell.rowSpan = parseInt(rowspanCell.rowSpan) - 1;
+                    // Sisipkan sebelum kolom tombol delete di Baris 2
+                    const deleteBtnCell = nextRow.querySelector('.no-print');
+                    if(deleteBtnCell) {
+                        nextRow.insertBefore(rowspanCell, deleteBtnCell);
+                    } else {
+                        nextRow.appendChild(rowspanCell);
+                    }
+                }
+            } else {
+                // Jika Baris lain dihapus, kurangi nilai rowspan di Baris 1
+                const firstRow = tbody.firstElementChild;
+                const existingRowspanCell = firstRow.querySelector('td[rowspan]');
+                if (existingRowspanCell) {
+                    existingRowspanCell.rowSpan = parseInt(existingRowspanCell.rowSpan) - 1;
+                }
+            }
+
+            // Hapus baris dari layar
+            tr.remove();
+
+            // Urutkan ulang nomor urut agar otomatis rapi
+            Array.from(tbody.children).forEach((row, index) => {
+                const noInput = row.querySelector('td:first-child input');
+                if(noInput) noInput.value = index + 1;
+            });
+        }
+        // ----------------------------------------
+
+        function renderEmptyRows(count = 3) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            const placeholderTeks = (currentFormType === 'retur') ? "Sisa Kemasan..." : "-";
+
+            for(let i = 1; i <= count; i++) {
+                const tr = document.createElement('tr');
+                let html = `
+                    <td class="py-1"><input type="text" class="text-center font-medium" value="${i}" readonly></td>
+                    <td class="text-left"><input type="text" class="w-full uppercase px-2 font-medium"></td>
+                    <td class="bg-slate-50"><input type="number" class="text-center w-full font-medium"></td>
+                    <td><input type="text" class="text-center w-full font-medium"></td>
+                    <td class="bg-slate-50"><input type="text" class="text-center w-full font-medium"></td>
+                `;
+                
+                if (i === 1) {
+                    html += `<td rowspan="${count}" class="bg-white border-l border-slate-800 p-2 align-top"><textarea class="w-full h-full min-h-[50px] text-center italic" placeholder="${placeholderTeks}"></textarea></td>`;
+                }
+
+                // Tambahan Tombol Hapus Baris
+                html += `<td class="no-print text-center align-middle border-none px-1"><button onclick="hapusBaris(this)" class="text-slate-400 hover:text-white hover:bg-red-500 rounded p-1 transition-colors font-bold text-lg leading-none" title="Hapus Baris">×</button></td>`;
+                
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            }
+        }
+
+        async function fetchOrderData(orderNum) {
+            const loadingEl = document.getElementById('loading');
+            loadingEl.style.display = 'flex';
+
+            try {
+                const url = `${GAS_URL}?action=getItemsByOrder&order=${encodeURIComponent(orderNum)}&type=${currentFormType}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = ''; 
+
+                if (data && data.length > 0) {
+
+                   // SIMPAN DATA PACKING KE WINDOW GLOBAL
+                    window.kapasitasBox = parseFloat(data[0]['Isi_Per_Box']) || 1;
+                    window.isiLakbanPerBox = parseFloat(data[0]['Isi_Lakban']) || 0;
+                    window.namaBoxTarget = (data[0]['Nama_Box_Master'] || "").toUpperCase().trim(); 
+
+                    document.getElementById('kd_material').value = data[0]['Kode Material'] || '';
+                    document.getElementById('nama_produk').value = data[0]['Nama Produk'] || '';
+                    document.getElementById('order_number').value = data[0]['Order'] || orderNum;
+
+                    const placeholderTeks = (currentFormType === 'retur') ? "Sisa Kemasan..." : "-";
+                    const getKd = data[0]['Kode Material'] || data[0]['Kode'];
+                    const getNm = data[0]['Nama Produk'] || data[0]['Produk'] || data[0]['Nama'];
+
+                    if (getKd) document.getElementById('kd_material').value = getKd;
+                    if (getNm) document.getElementById('nama_produk').value = getNm;
+
+                    data.forEach((item, index) => {
+                        
+                        const namaBarang = item['Nama Barang'] || item['Nama Produk'] || item['Material Description'] || item['Deskripsi'] || item['Barang'] || '';
+                        const qty = item['Qty'] || item['QTY'] || item['Quantity'] || '';
+                        const batch = item['Batch'] || item['BATCH'] || '';
+                        const uom = item['UoM'] || item['UOM'] || item['Satuan'] || 'pcs'; 
+
+                        const tr = document.createElement('tr');
+                        let rowHtml = `
+                            <td class="py-1"><input type="text" class="text-center font-medium" value="${index + 1}" readonly></td>
+                            <td class="text-left"><input type="text" value="${namaBarang}" class="w-full uppercase px-2 font-medium"></td>
+                            <td class="bg-slate-50"><input type="number" step="any" class="text-center w-full font-medium text-blue-900" value="${qty}" ${index === 0 ? 'oninput="hitungOtomatis(this)"' : ''}></td>
+                            <td><input type="text" class="text-center w-full font-medium" value="${uom}"></td>
+                            <td class="bg-slate-50"><input type="text" class="text-center w-full font-medium" value="${batch}"></td>
+                        `;
+
+                        if(index === 0) {
+                            rowHtml += `<td rowspan="${data.length}" class="bg-white border-l border-slate-800 p-2 align-top">
+                                <textarea class="w-full h-full min-h-[50px] text-center font-medium" placeholder="${placeholderTeks}"></textarea>
+                            </td>`;
+                        }
+
+                        // Tambahan Tombol Hapus Baris
+                        rowHtml += `<td class="no-print text-center align-middle border-none px-1"><button onclick="hapusBaris(this)" class="text-slate-400 hover:text-white hover:bg-red-500 rounded p-1 transition-colors font-bold text-lg leading-none" title="Hapus Baris ini">×</button></td>`;
+
+                        tr.innerHTML = rowHtml;
+                        tbody.appendChild(tr);
+                    });
+                    const inputUtama = document.querySelector('#tableBody tr:first-child td:nth-child(3) input');
+                        if (inputUtama)
+                        {
+                        // Tambahkan attribute oninput secara dinamis jika belum ada
+                        inputUtama.setAttribute('oninput', 'hitungOtomatis(this)');
+                        // Jalankan hitungan pertama kali
+                        hitungOtomatis(inputUtama);
+                        }
+                } else {
+                    alert(`⚠️ Nomor PO berakhiran "${orderNum}" tidak ditemukan di database.`);
+                    renderEmptyRows(8);
+                }
+            } catch (error) {
+                console.error("Kesalahan:", error);
+                alert("Gagal menarik data. Error: " + error.message);
+                renderEmptyRows(8);
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+
+        async function simpanData() {
+            const btn = document.getElementById('btnSimpan');
+            const orderNum = document.getElementById('order_number').value;
+            
+            if(!orderNum) return alert("Silakan isi dan Enter No PO terlebih dahulu!");
+            if(!confirm("Anda yakin ingin menyimpan data dokumen ini ke sistem?")) return;
+
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "Menyimpan...";
+
+            const items = [];
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                alert("Mantap, fungsi hitung sudah nyambung!");
+                const inputs = row.querySelectorAll('input');
+                if(inputs[1] && inputs[1].value) { 
+                    items.push({ nama: inputs[1].value, qty: inputs[2].value, batch: inputs[4].value });
+                }
+            });
+
+            const payload = {
+                type: currentFormType,
+                order_number: orderNum,
+                lokasi: document.getElementById('input_cabang').value,
+                kd_material: document.getElementById('kd_material').value,
+                nama_produk: document.getElementById('nama_produk').value,
+                items: items
+            };
+
+            try {
+                const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const res = await response.json();
+                if(res.result === "success") {
+                    alert("✅ Data Berhasil Disimpan ke Sistem!");
+                }
+            } catch (err) {
+                alert("Gagal menyimpan data ke database.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const orderInput = document.getElementById('order_number');
+            orderInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    const orderNum = this.value.trim();
+                    if(orderNum) fetchOrderData(orderNum);
+                }
+            });
+        });
+
+        function resetForm() {
+            document.querySelectorAll('#app_view input:not([readonly]), #app_view textarea').forEach(input => input.value = '');
+            document.getElementById('input_cabang').value = 'Cikupa';
+            setupDates();
+            renderEmptyRows(8);
+        }
+        // ========================================================
+        // 1. PEMICU GLOBAL (Otomatis mantau kalau ada yang ngetik)
+        // ========================================================
+        document.addEventListener('input', function(e) {
+            // Cek apakah yang diketik adalah kolom Qty (tipe number)
+            if (e.target && e.target.type === 'number' && e.target.closest('tbody')) {
+                const row = e.target.closest('tr');
+                const tbody = row.parentElement;
+                
+                // Pastikan hitung otomatis HANYA jalan kalau yang diketik adalah BARIS PERTAMA
+                if (row === tbody.rows[0]) {
+                    hitungOtomatis(e.target);
+                }
+            }
+        });
+
+        // ========================================================
+        // FUNGSI UNTUK MENGGAMBAR TABEL BARANG (RENDER)
+        // ========================================================
+       // ========================================================
+        // FUNGSI AUTO HITUNG (VERSI PRE-COMPUTE ANTI MACET)
+        // ========================================================
+       function hitungOtomatis(el) {
+            if (!el) return;
+            
+            // 1. Ambil angka yang sedang diketik (Misal: 8 atau 16)
+            const qtyUtama = parseFloat(el.value) || 0;
+            
+            // 2. Ambil aturan pembagi dari memori (Misal: 4 dan 83.4)
+            const pembagiBox = parseFloat(window.kapasitasBox) || 1;
+            const pengaliLakban = parseFloat(window.isiLakbanPerBox) || 0;
+            const targetBox = (window.namaBoxTarget || "").toUpperCase().trim();
+
+            // 3. RUMUS KELIPATAN (WAJIB PAKAI Math.ceil)
+            // Contoh: 8 / 4 = 2. Kalau 5 / 4 = 1.25 -> dibulatkan jadi 2 Box.
+            const hasilBox = Math.ceil(qtyUtama / pembagiBox);
+            const hasilLakban = hasilBox * pengaliLakban;
+
+            const tbody = document.getElementById('tableBody');
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach((row, index) => {
+                if (index === 0) return; // Lewati baris pertama (Barang Utama)
+
+                const inputNama = row.querySelector('td:nth-child(2) input');
+                const inputQty = row.querySelector('td:nth-child(3) input');
+                if (!inputNama || !inputQty) return;
+
+                const namaBarang = inputNama.value.toUpperCase().trim();
+
+                // A. JIKA BARIS ADALAH BOX (Sesuai nama target di Master atau mengandung kata BOX)
+                if (namaBarang === targetBox || namaBarang.includes('BOX') || namaBarang.includes('DUS')) {
+                    inputQty.value = hasilBox;
+                } 
+                // B. JIKA BARIS ADALAH LAKBAN
+                else if (namaBarang.includes('LAKBAN')) {
+                    inputQty.value = parseFloat(hasilLakban.toFixed(2));
+                } 
+                // C. KOMPONEN LAIN (Tutup, dll) samakan dengan Qty Utama
+                else {
+                    inputQty.value = qtyUtama;
+                }
+            });
+        }
+        // ------------------------------------------------
+    </script>
+</body>
+</html>
