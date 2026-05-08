@@ -34,6 +34,7 @@
         .excel-table { width: 100%; border-collapse: collapse; }
         .excel-table th, .excel-table td { border: 1px solid #1e293b; padding: 6px 8px; }
         .excel-table th { background-color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; font-size: 12px; color: #0f172a;}
+        .excel-table.hide-batch .batch-col { display: none; }
         
         .border-none { border: none !important; }
         .border-b-only { border: none; border-bottom: 1px solid #1e293b !important; }
@@ -87,9 +88,12 @@
                     <span class="text-lg md:text-xl font-bold text-slate-800 tracking-tight hidden md:block">Form Generator System</span>
                 </div>
 
-                <div class="hidden md:flex items-center gap-2 text-sm font-medium text-slate-500">
-                    <span class="w-2 h-2 rounded-full bg-green-500"></span> System Online
-                </div>
+                    <div class="flex items-center">
+                        <!-- Tombol Login langsung mengisi posisi paling kanan -->
+                        <button id="btnBukaLogin" onclick="document.getElementById('modalLogin').classList.remove('hidden')" class="bg-slate-800 text-white px-4 py-2 rounded font-bold hover:bg-slate-700 transition">
+                            Login
+                        </button>
+                    </div>
             </div>
         </header>
 
@@ -194,9 +198,9 @@
                     </tr>
                     <tr>
                         <td class=""><span class="underline">Cabang</span> / <span class="underline">Lokasi</span></td>
-                        <td class="border-b border-black">: <input type="text" value="Cikupa" class="w-auto inline-block italic" id="input_cabang"></td>
+                        <td class="border-b border-black">: <input type="text" value="Cikupa" class="w-auto inline-block italic font-bold" id="input_cabang"></td>
                         <td class="text-right underline pr-2">Tgl</td>
-                        <td class="border-b border-black text-center">: <input type="text" id="tgl_dokumen" class="w-auto inline-block italic text-center"></td>
+                        <td class="border-b border-black text-center">: <input type="text" id="tgl_dokumen" class="w-auto inline-block italic text-center font-bold"></td>
                     </tr>
                 </tbody>
             </table>
@@ -236,13 +240,13 @@
                     <col style="width: 40%;"> 
                     <col style="width: 8%;"> 
                     <col style="width: 7%;"> 
-                    <col style="width: 15%;"> 
+                    <col class="batch-col" style="width: 15%;"> 
                     <col style="width: 25%;"> 
                     <col class="no-print" style="width: 40px;"> 
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>No.</th><th>Nama Barang</th><th>Qty</th><th>UoM</th><th>Batch</th><th id="th_keterangan">Alasan dikembalikan</th>
+                        <th>No.</th><th>Nama Barang</th><th>Qty</th><th>UoM</th><th class="batch-col">Batch</th><th id="th_keterangan">Alasan dikembalikan</th>
                         <th class="no-print border-none text-red-500 text-xs">Aksi</th>
                     </tr>
                 </thead>
@@ -286,7 +290,7 @@
     <script>
         let kapasitasBox = 1;
         let isiLakbanPerBox = 0;
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwW-LQfH8y8st5tUPUiOQBost2z9CO0EHRgL1D7Fa8o6QBr4yH4JeG9pYmvHz0puHin0A/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzsS3C3cl3bSuMSX7m6mI6it0H4yTpZtPHzMPuxQrXF1AT56ZYLWz51E3YJOVdVyyas3Q/exec";
         let tipeDokumen = 'retur';
         
         let currentFormType = ''; 
@@ -296,6 +300,7 @@
             document.getElementById('landing_view').classList.add('hidden');
             document.getElementById('landing_view').classList.remove('flex'); 
             document.getElementById('app_view').classList.remove('hidden');
+            document.getElementById('itemsTable').classList.toggle('hide-batch', type === 'penyiapan');
             window.scrollTo(0, 0);
 
             if(type === 'retur') {
@@ -342,7 +347,65 @@
             };
             document.getElementById('tgl_serah').value = formatTime(today);
         }
+        function prosesLogin() {
+            try {
+                // 1. Cek apakah elemen-elemen HTML-nya beneran ada
+                const elmUser = document.getElementById('inputUser');
+                const elmPass = document.getElementById('inputPass');
+                const btn = document.getElementById('btnProsesLogin');
+                const pesan = document.getElementById('pesanLogin');
 
+                if (!elmUser || !elmPass || !btn || !pesan) {
+                    alert("❌ ERROR: Ada elemen HTML Form Login yang hilang atau ID-nya salah ketik!");
+                    return;
+                }
+
+                const user = elmUser.value.trim();
+                const pass = elmPass.value.trim();
+                
+                // ⚠️ GANTI DENGAN URL WEB APP BAPAK ⚠️
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbzjQ58859poowFWNe7cKwNZrTPtMazx6HUkJetI-JDdp15qW1pTkup2NQj-8kr9Df10MQ/exec'; 
+
+                if (!user || !pass) {
+                    pesan.textContent = "Isi username & password dulu bosku!";
+                    pesan.classList.remove('hidden');
+                    return;
+                }
+
+                // 2. Eksekusi Tombol Loading
+                btn.innerHTML = "<span>Loading... ⏳</span>";
+                btn.disabled = true;
+                pesan.classList.add('hidden');
+
+                // 3. Tembak Data
+                fetch(`${scriptUrl}?action=login&username=${user}&password=${pass}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Balikin tombol
+                        btn.innerHTML = `<span>Masuk Dashboard</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>`;
+                        btn.disabled = false;
+
+                        if (data.success) {
+                            alert('✅ Login Berhasil ce\'es!');
+                            document.getElementById('modalLogin').classList.add('hidden');
+                        } else {
+                            pesan.textContent = data.message;
+                            pesan.classList.remove('hidden');
+                        }
+                    })
+                    .catch(err => {
+                        btn.innerHTML = `<span>Masuk Dashboard</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>`;
+                        btn.disabled = false;
+                        pesan.textContent = "Gagal konek ke server! Pastikan URL Web App sudah diganti.";
+                        pesan.classList.remove('hidden');
+                    });
+
+            } catch (error) {
+                // 4. Kalau JS-nya nabrak error, dia bakal ngabarin lewat pop-up!
+                alert("❌ JAVASCRIPT ERROR: " + error.message);
+                console.error(error);
+            }
+        }
         // --- FUNGSI BARU: HAPUS BARIS CERDAS ---
         function hapusBaris(btn) {
             const tr = btn.closest('tr');
@@ -401,7 +464,7 @@
                     <td class="text-left"><input type="text" class="w-full uppercase px-2 font-medium"></td>
                     <td class="bg-slate-50"><input type="number" class="text-center w-full font-medium"></td>
                     <td><input type="text" class="text-center w-full font-medium"></td>
-                    <td class="bg-slate-50"><input type="text" class="text-center w-full font-medium"></td>
+                    <td class="bg-slate-50 batch-col"><input type="text" class="text-center w-full font-medium"></td>
                 `;
                 
                 if (i === 1) {
@@ -452,6 +515,7 @@
                         
                         const namaBarang = item['Nama Barang'] || item['Nama Produk'] || item['Material Description'] || item['Deskripsi'] || item['Barang'] || '';
                         const qty = item['Qty'] || item['QTY'] || item['Quantity'] || '';
+                        const displayQty = (qty === 0 || qty === '0') ? '' : qty;
                         const batch = item['Batch'] || item['BATCH'] || '';
                         const uom = item['UoM'] || item['UOM'] || item['Satuan'] || 'pcs'; 
 
@@ -459,9 +523,9 @@
                         let rowHtml = `
                             <td class="py-1"><input type="text" class="text-center font-bold text-black" value="${index + 1}" readonly></td>
                             <td class="text-left"><input type="text" value="${namaBarang}" class="w-full uppercase px-2 font-bold text-black" readonly></td>
-                            <td class="bg-slate-50"><input type="number" step="any" class="text-center w-full font-bold text-blue-900" value="${qty}" ${index === 0 ? 'oninput="hitungOtomatis(this)"' : 'readonly'}></td>
+                            <td class="bg-slate-50"><input type="number" step="any" class="text-center w-full font-bold text-blue-900" value="${displayQty}" ${index === 0 ? 'oninput="hitungOtomatis(this)"' : ''}></td>
                             <td><input type="text" class="text-center w-full font-bold text-black" value="${uom}" readonly></td>
-                            <td class="bg-slate-50"><input type="text" class="text-center w-full font-bold text-black" value="${batch}" readonly></td>
+                            <td class="bg-slate-50 batch-col"><input type="text" class="text-center w-full font-bold text-black" value="${batch}" readonly></td>
                         `;
 
                         // Sekalian kita tebelin teks di kolom Alasan Dikembalikan (Textarea)
@@ -584,6 +648,7 @@
             if (!el) return;
             
             // 1. Ambil angka yang sedang diketik (Misal: 8 atau 16)
+            const qtyUtamaText = el.value.trim();
             const qtyUtama = parseFloat(el.value) || 0;
             
             // 2. Ambil aturan pembagi dari memori (Misal: 4 dan 83.4)
@@ -598,6 +663,15 @@
 
             const tbody = document.getElementById('tableBody');
             const rows = tbody.querySelectorAll('tr');
+
+            if (qtyUtamaText === '') {
+                rows.forEach((row, index) => {
+                    if (index === 0) return;
+                    const inputQty = row.querySelector('td:nth-child(3) input');
+                    if (inputQty) inputQty.value = '';
+                });
+                return;
+            }
 
             rows.forEach((row, index) => {
                 if (index === 0) return; // Lewati baris pertama (Barang Utama)
@@ -622,7 +696,70 @@
                 }
             });
         }
+        // 👉 TARUH POINT C DI SINI (Masih di dalam tag <script>)
+        function prosesLogin() {
+            // ... isi kode point C tadi ...
+        }
         // ------------------------------------------------
     </script>
+    <!-- MODAL LOGIN MODERN & PROFESSIONAL -->
+<div id="modalLogin" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+        
+        <!-- Header Modal -->
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+            <h3 class="text-lg font-black text-slate-800 tracking-wide uppercase">Login Sistem</h3>
+            <button onclick="document.getElementById('modalLogin').classList.add('hidden')" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors">
+                <!-- Icon Close (X) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Body Modal -->
+        <div class="p-6">
+            
+            <div class="space-y-4">
+                <!-- Input Username -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <input type="text" id="inputUser" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all text-slate-800 font-bold" placeholder="Masukkan username">
+                    </div>
+                </div>
+
+                <!-- Input Password -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <input type="password" id="inputPass" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all text-slate-800 font-bold" placeholder="••••••••">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pesan Error -->
+            <p id="pesanLogin" class="text-red-500 text-sm font-bold text-center mt-4 hidden bg-red-50 py-2 rounded border border-red-100"></p>
+
+            <!-- Footer / Button -->
+            <div class="mt-8">
+                <button onclick="prosesLogin()" id="btnProsesLogin" class="w-full py-2.5 bg-slate-800 text-white rounded-lg font-bold tracking-wide hover:bg-slate-700 hover:shadow-lg focus:ring-4 focus:ring-slate-200 transition-all flex justify-center items-center gap-2">
+                    <span>Masuk Dashboard</span>
+                    <!-- Icon Arrow Right -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
 </body>
 </html>
